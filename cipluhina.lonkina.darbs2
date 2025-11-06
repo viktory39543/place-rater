@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Vietu Vērtējumi — Darbspējīga</title>
+  <style>
+    :root{
+      --accent:#4c7ef3;
+      --accent-2:#00b4d8;
+      --muted:#6b7280;
+      --card:#f7f9ff;
+      --max-width:1100px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;
+      background:linear-gradient(180deg,#f3f6ff 0%, #fbfdff 100%);
+      color:#0f172a;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    header{
+      padding:48px 20px;
+      text-align:center;
+      background:linear-gradient(135deg,var(--accent), var(--accent-2));
+      color:white;
+    }
+    header h1{margin:0;font-size:28px;letter-spacing:0.2px}
+    header p{margin:8px 0 0; opacity:0.95}
+
+    nav{
+      display:flex;
+      gap:12px;
+      justify-content:center;
+      padding:12px 16px;
+      background:white;
+      box-shadow:0 2px 8px rgba(15,23,42,0.06);
+      position:sticky;
+      top:0;
+      z-index:10;
+    }
+    nav a{color:#0f172a;text-decoration:none;font-weight:600}
+    main{max-width:var(--max-width);margin:28px auto;padding:0 16px}
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 420px;
+      gap:24px;
+      align-items:start;
+    }
+
+    @media(max-width:980px){ .grid{grid-template-columns:1fr;} }
+
+    /* Sānis — forma */
+    .panel{
+      background:white;border-radius:12px;padding:18px;box-shadow:0 6px 20px rgba(15,23,42,0.04);
+    }
+    .panel h2{margin:0 0 12px;color:var(--accent)}
+    label{display:block;font-size:13px;color:var(--muted);margin:8px 0 6px}
+    input[type="text"], select, textarea, input[type="file"]{
+      width:100%;padding:10px;border:1px solid #e6eefb;border-radius:8px;font-size:15px;
+      background:linear-gradient(180deg,#fff,#fbfdff);
+    }
+    textarea{min-height:100px;resize:vertical}
+    .btn{
+      display:inline-flex;gap:8px;align-items:center;justify-content:center;
+      padding:10px 14px;border-radius:10px;border:0;background:var(--accent);
+      color:white;font-weight:700;cursor:pointer;margin-top:10px;
+    }
+    .btn.secondary{background:#1f2937;color:white}
+    .controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+
+    /* Kartītes saraksts */
+    .places-wrap{display:grid;gap:16px}
+    .place-card{
+      display:flex;gap:14px;background:var(--card);border-radius:12px;padding:12px;border:1px solid #e6eefb;
+      align-items:flex-start;
+    }
+    .place-thumb{
+      width:120px;height:84px;border-radius:8px;flex:0 0 120px;object-fit:cover;background:#e9f0ff;
+    }
+    .place-info h3{margin:0 0 6px;font-size:18px}
+    .place-info p{margin:0;color:var(--muted);font-size:14px}
+    .meta{margin-top:8px;display:flex;gap:8px;align-items:center;font-size:13px;color:#334155}
+    .stars{color:#f59e0b;font-weight:700}
+
+    .actions{margin-left:auto;display:flex;flex-direction:column;gap:6px}
+    .small-btn{background:transparent;border:1px solid rgba(15,23,42,0.06);padding:6px 8px;border-radius:8px;cursor:pointer}
+    .del{color:#ef4444;border-color:rgba(239,68,68,0.12)}
+
+    .empty{
+      text-align:center;padding:40px;border-radius:10px;border:1px dashed #e6eefb;color:var(--muted)
+    }
+
+    /* Filtri un meklēšana augšā sarakstam */
+    .topbar{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap}
+    .search{display:flex;gap:8px;align-items:center}
+    .search input{padding:8px 10px;border-radius:10px;border:1px solid #e6eefb;width:260px}
+    .sort select{padding:8px;border-radius:8px;border:1px solid #e6eefb}
+
+    footer{max-width:var(--max-width);margin:24px auto 40px;padding:16px;text-align:center;color:var(--muted)}
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>⭐ Vietu Vērtējumi</h1>
+    <p>Pievieno vietu, atstāj zvaigznes, komentāru un bildi — dati glabājas tavā pārlūkā.</p>
+  </header>
+
+  <nav>
+    <a href="#add">Pievienot</a>
+    <a href="#list">Saraksts</a>
+    <a href="#kontakti">Kontakti</a>
+  </nav>
+
+  <main>
+    <div class="grid">
+      <!-- GALVENĀ SADAĻA — SARAKSTS -->
+      <div>
+        <section id="list" class="panel">
+          <div class="topbar">
+            <div class="search">
+              <input id="searchInput" type="text" placeholder="Meklēt pēc nosaukuma..." />
+              <button id="clearSearch" class="small-btn">Notīrīt</button>
+            </div>
+            <div class="sort">
+              <label for="sortSelect" style="font-size:13px;color:var(--muted);margin-right:6px">Kārtot:</label>
+              <select id="sortSelect">
+                <option value="newest">Pēc jaunākajiem</option>
+                <option value="oldest">Pēc vecākajiem</option>
+                <option value="ratingDesc">Augstākais vērtējums</option>
+                <option value="ratingAsc">Zemākais vērtējums</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="placesContainer" class="places-wrap">
+            <!-- vietas tiks ielādētas šeit JS -->
+          </div>
+        </section>
+      </div>
+
+      <!-- SĀNIS — PIEVIENOŠANA -->
+      <aside>
+        <section id="add" class="panel">
+          <h2>Pievieno vērtējumu</h2>
+          <form id="ratingForm">
+            <label for="placeName">Vietas nosaukums</label>
+            <input id="placeName" type="text" placeholder="Piem., Kafejnīca 'Saulīte'" required />
+
+            <label for="placeRating">Zvaigznes</label>
+            <select id="placeRating" required>
+              <option value="">— izvēlies —</option>
+              <option value="5">⭐️⭐️⭐️⭐️⭐️ (5)</option>
+              <option value="4">⭐️⭐️⭐️⭐️ (4)</option>
+              <option value="3">⭐️⭐️⭐️ (3)</option>
+              <option value="2">⭐️⭐️ (2)</option>
+              <option value="1">⭐️ (1)</option>
+            </select>
+
+            <label for="placeComment">Komentārs</label>
+            <textarea id="placeComment" placeholder="Apraksti savu pieredzi..." required></textarea>
+
+            <label for="placeImage">Attēls (nav obligāti)</label>
+            <input id="placeImage" type="file" accept="image/*" />
+
+            <div style="display:flex;gap:8px;margin-top:10px;">
+              <button type="submit" class="btn">Pievienot</button>
+              <button type="button" id="clearForm" class="btn secondary">Notīrīt</button>
+            </div>
+
+            <p style="margin-top:10px;font-size:13px;color:var(--muted)">
+              Piezīme: attēli tiek saglabāti tavā pārlūkā kā data URL; lieli faili var aizņemt vietu.
+            </p>
+          </form>
+        </section>
+
+        <section id="kontakti" class="panel" style="margin-top:18px">
+          <h2>Kontakti</h2>
+          <p style="margin:0;color:var(--muted)">📧 info@vietuvertejumi.lv<br>📍 Rīga, Latvija</p>
+        </section>
+      </aside>
+    </div>
+  </main>
+
+  <footer>
+    © 2025 Vietu Vērtējumi — dati glabājas tikai tavā ierīcē (localStorage).
+  </footer>
+
+  <script>
+    // ======== Simple localStorage-backed app ========
+    const STORAGE_KEY = 'vietu_vertejumi_v1';
+
+    // DOM
+    const form = document.getElementById('ratingForm');
+    const placesContainer = document.getElementById('placesContainer');
+    const searchInput = document.getElementById('searchInput');
+    const clearSearchBtn = document.getElementById('clearSearch');
+    const sortSelect = document.getElementById('sortSelect');
+    const clearFormBtn = document.getElementById('clearForm');
+
+    // Load existing places or empty array
+    let places = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+
+    // Helper: save to localStorage
+    function savePlaces(){
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(places));
+    }
+
+    // Helper: create place DOM card
+    function createPlaceCard(place){
+      const el = document.createElement('div');
+      el.className = 'place-card';
+      el.dataset.id = place.id;
+
+      const img = document.createElement('img');
+      img.className = 'place-thumb';
+      img.alt = place.name;
+      img.src = place.image || 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect width="100%" height="100%" fill="#e9f0ff"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#9fb6ff" font-family="Arial" font-size="20">Nav attēla</text></svg>`);
+
+      const info = document.createElement('div');
+      info.className = 'place-info';
+      const h3 = document.createElement('h3');
+      h3.textContent = place.name;
+      const p = document.createElement('p');
+      p.textContent = place.comment;
+
+      const meta = document.createElement('div');
+      meta.className = 'meta';
+      const stars = document.createElement('span');
+      stars.className = 'stars';
+      stars.textContent = '★'.repeat(place.rating) + '☆'.repeat(5 - place.rating);
+      const when = document.createElement('span');
+      when.style.fontSize = '12px';
+      when.style.color = 'var(--muted)';
+      when.textContent = formatDate(place.createdAt);
+
+      meta.appendChild(stars);
+      meta.appendChild(when);
+
+      info.appendChild(h3);
+      info.appendChild(p);
+      info.appendChild(meta);
+
+      const actions = document.createElement('div');
+      actions.className = 'actions';
+
+      const delBtn = document.createElement('button');
+      delBtn.className = 'small-btn del';
+      delBtn.textContent = 'Dzēst';
+      delBtn.title = 'Dzēst ierakstu';
+      delBtn.addEventListener('click', () => {
+        if (confirm(`Dzēst "${place.name}"?`)) {
+          places = places.filter(x => x.id !== place.id);
+          savePlaces();
+          renderPlaces();
+        }
+      });
+
+      // optional: copy shareable JSON
+      const copyBtn = document.createElement('button');
+      copyBtn.className = 'small-btn';
+      copyBtn.textContent = 'Kopēt';
+      copyBtn.title = 'Kopēt ieraksta JSON';
+      copyBtn.addEventListener('click', () => {
+        navigator.clipboard?.writeText(JSON.stringify(place, null, 2)).then(() => {
+          copyBtn.textContent = 'Kopēts!';
+          setTimeout(()=> copyBtn.textContent = 'Kopēt', 1200);
+        });
+      });
+
+      actions.appendChild(copyBtn);
+      actions.appendChild(delBtn);
+
+      el.appendChild(img);
+      el.appendChild(info);
+      el.appendChild(actions);
+
+      return el;
+    }
+
+    // Render list according to filters + sort
+    function renderPlaces(){
+      placesContainer.innerHTML = '';
+      const q = searchInput.value.trim().toLowerCase();
+      let list = places.slice();
+
+      // sort
+      const sort = sortSelect.value;
+      if(sort === 'newest'){
+        list.sort((a,b)=> b.createdAt - a.createdAt);
+      } else if(sort === 'oldest'){
+        list.sort((a,b)=> a.createdAt - b.createdAt);
+      } else if(sort === 'ratingDesc'){
+        list.sort((a,b)=> b.rating - a.rating);
+      } else if(sort === 'ratingAsc'){
+        list.sort((a,b)=> a.rating - b.rating);
+      }
+
+      // filter by search
+      if(q){
+        list = list.filter(p => p.name.toLowerCase().includes(q) || p.comment.toLowerCase().includes(q));
+      }
+
+      if(list.length === 0){
+        const empty = document.createElement('div');
+        empty.className = 'empty';
+        empty.innerHTML = q ? `Nav rezultātu priekš: <b>${escapeHtml(q)}</b>` : 'Šobrīd nav neviena ieraksta — pievieno savu vietu labajā pusē.';
+        placesContainer.appendChild(empty);
+        return;
+      }
+
+      for(const p of list){
+        placesContainer.appendChild(createPlaceCard(p));
+      }
+    }
+
+    // Format timestamp
+    function formatDate(ts){
+      const d = new Date(ts);
+      return d.toLocaleString();
+    }
+
+    // Escape simple HTML for safety in messages
+    function escapeHtml(s){
+      return s.replace(/[&<>"']/g, (m)=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;" })[m]);
+    }
+
+    // Handle form submit: read image as dataURL then save
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('placeName').value.trim();
+      const rating = parseInt(document.getElementById('placeRating').value,10);
+      const comment = document.getElementById('placeComment').value.trim();
+      const imageInput = document.getElementById('placeImage');
+
+      if(!name || !rating || !comment){
+        alert('Lūdzu aizpildi nosaukumu, zvaigznes un komentāru.');
+        return;
+      }
+
+      // read image if present
+      if(imageInput.files && imageInput.files[0]){
+        const file = imageInput.files[0];
+        // small client-side size check (optional)
+        const MAX_MB = 3;
+        if(file.size > MAX_MB * 1024 * 1024){
+          if(!confirm(`Attēls ir liels (${Math.round(file.size/1024/1024)} MB). Saglabājot tas var ātri aizpildīt pārlūkprogrammas localStorage. Turpināt?`)){
+            return;
+          }
+        }
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const dataUrl = ev.target.result;
+          pushPlace({name,rating,comment,image:dataUrl});
+          form.reset();
+        };
+        reader.readAsDataURL(file);
+      } else {
+        pushPlace({name,rating,comment,image:''});
+        form.reset();
+      }
+    });
+
+    // push new place to array and render
+    function pushPlace({name,rating,comment,image}){
+      const newPlace = {
+        id: Date.now().toString() + Math.floor(Math.random()*9999),
+        name, rating, comment,
+        image: image || '',
+        createdAt: Date.now()
+      };
+      places.push(newPlace);
+      savePlaces();
+      renderPlaces();
+      // scroll to top of list to see added item
+      window.scrollTo({top:0,behavior:'smooth'});
+    }
+
+    // Clear form
+    clearFormBtn.addEventListener('click', ()=>{
+      if(confirm('Notīrīt formu?')) form.reset();
+    });
+
+    // Search & clear
+    searchInput.addEventListener('input', ()=> renderPlaces());
+    clearSearchBtn.addEventListener('click', ()=>{
+      searchInput.value = '';
+      renderPlaces();
+    });
+
+    // Sort
+    sortSelect.addEventListener('change', ()=> renderPlaces());
+
+    // Initial render
+    renderPlaces();
+
+    // For convenience: expose a function to clear all data (useful during testing)
+    // window._clearAllVietas = function(){ if(confirm('Izdzēst VISUS ierakstus?')){ places=[]; savePlaces(); renderPlaces(); } };
+
+  </script>
+</body>
+</html>
